@@ -1,0 +1,111 @@
+{
+  "nodes": [
+    {
+      "id": "d277b81b-05fd-4733-807a-f63eb6e87742",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        960,
+        500
+      ],
+      "parameters": {
+        "model": "gpt-4",
+        "options": {}
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "VQtv7frm7eLiEDnd",
+          "name": "OpenAi account 7"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "c56b3269-32b0-4782-ad50-74af8ee2d8a7",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        960,
+        320
+      ],
+      "parameters": {
+        "agent": "sqlAgent",
+        "input": "={{ $json.chatInput }}",
+        "options": {},
+        "dataSource": "postgres"
+      },
+      "credentials": {
+        "postgres": {
+          "id": "ON7WH990zsLlqqlT",
+          "name": "Creators site staging"
+        }
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "8781c9fd-f6de-4a85-b05d-8f55647304f7",
+      "name": "Chat Trigger",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        740,
+        320
+      ],
+      "webhookId": "792d3290-b52a-486c-85a8-d736e7807c0e",
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "3c485755-0594-4a5a-b38c-440694668181",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        620,
+        480
+      ],
+      "parameters": {
+        "content": "## Try me out\nClick the 'chat' button at the bottom of the canvas and paste in:\n\n_Which tables are available?_"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "8f296643-7375-4974-be5d-9a4223d11e5f",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        940,
+        240
+      ],
+      "parameters": {
+        "color": 7,
+        "width": 297,
+        "height": 205,
+        "content": "This workflow uses a Postgres DB, but you could swap it for a MySQL or SQLite one"
+      },
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Chat Trigger": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

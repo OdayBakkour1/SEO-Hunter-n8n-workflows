@@ -1,0 +1,17 @@
+{
+  "nodes": [
+    {
+      "name": "SSE Trigger",
+      "type": "n8n-nodes-base.sseTrigger",
+      "position": [
+        850,
+        420
+      ],
+      "parameters": {
+        "url": "https://n8n.io"
+      },
+      "typeVersion": 1
+    }
+  ],
+  "connections": {}
+}

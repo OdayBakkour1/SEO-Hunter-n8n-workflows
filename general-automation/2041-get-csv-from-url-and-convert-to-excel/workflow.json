@@ -1,0 +1,121 @@
+{
+  "nodes": [
+    {
+      "id": "580d8a47-32cc-4976-a464-793523ae3d1e",
+      "name": "When clicking \"Execute Workflow\"",
+      "type": "n8n-nodes-base.manualTrigger",
+      "position": [
+        860,
+        380
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "2ca1b012-db79-415a-8983-53ac23cd42d1",
+      "name": "Import CSV",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "position": [
+        1260,
+        380
+      ],
+      "parameters": {
+        "options": {
+          "delimiter": ";",
+          "headerRow": true
+        },
+        "fileFormat": "csv"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "5bc0a423-91bc-4b52-af05-2869223bbbff",
+      "name": "Download CSV",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1060,
+        380
+      ],
+      "parameters": {
+        "url": "https://opendata.potsdam.de/api/v2/catalog/datasets/veranstaltungsplaetze-potsdam/exports/csv",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "file"
+            }
+          }
+        }
+      },
+      "typeVersion": 4.1
+    },
+    {
+      "id": "d403206d-e53c-44d7-b39e-361fa8fc3a23",
+      "name": "Convert to Excel",
+      "type": "n8n-nodes-base.spreadsheetFile",
+      "position": [
+        1460,
+        380
+      ],
+      "parameters": {
+        "options": {
+          "fileName": "=converted_csv.{{ $parameter.fileFormat }}",
+          "headerRow": true,
+          "sheetName": "csv_page"
+        },
+        "operation": "toFile",
+        "fileFormat": "xlsx"
+      },
+      "typeVersion": 2
+    },
+    {
+      "id": "66279cfc-4bde-45af-910f-84854eca9a70",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        820,
+        177
+      ],
+      "parameters": {
+        "width": 808,
+        "height": 385,
+        "content": "## Convert CSV to Excel (.xlsx)\n1. Click Execute Workflow to begin\n2. Download the data from the Web\n3. Import CSV binary data as a JSON\n4. Convert JSON to .xlsx file\n\nSource:\nhttps://data.europa.eu/data/datasets/veranstaltungsplaetze-potsdam-potsdam?locale=en"
+      },
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Import CSV": {
+      "main": [
+        [
+          {
+            "node": "Convert to Excel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download CSV": {
+      "main": [
+        [
+          {
+            "node": "Import CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When clicking \"Execute Workflow\"": {
+      "main": [
+        [
+          {
+            "node": "Download CSV",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

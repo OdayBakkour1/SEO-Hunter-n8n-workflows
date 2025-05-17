@@ -1,0 +1,37 @@
+# 2504 Wordpress Ai Chatbot To Enhance User Experience With Supabase And Openai
+
+This workflow is designed to create and manage embeddings for a WordPress website's content, enabling a conversational AI agent to provide relevant information to website visitors based on their questions.
+
+Example: A website owner can use this workflow to automatically generate embeddings for their WordPress content, including blog posts and pages. The workflow can be set to run on a regular schedule to update the embeddings as new content is added or existing content is modified. When a website visitor asks a question, the workflow retrieves the relevant content from the Supabase vector store, generates an AI-powered response using the OpenAI language model, and sends the response back to the visitor through a webhook.
+
+## What You Can Do
+- Automatically generates embeddings for WordPress content and stores them in a Supabase vector store
+- Provides a conversational AI agent that can answer visitor questions based on the website's content
+- Integrates metadata (such as URL, publication date, and modification date) directly into the AI agent's responses to provide context
+- Supports incremental updates to the vector store, ensuring that new and updated content is included in the AI agent's knowledge base
+
+## Quick Start
+1. Import this workflow to n8n
+2. Configure your settings
+3. Start automating!
+
+⚠️ WARNING: Stop Building Basic Automations For Peanuts. 🚫
+
+Here's the painful truth most won't tell you...
+
+While 90% of builders are stuck selling $500 n8n workflows (and working way too hard)...
+I'm consistently closing $6k-13k deals by doing ONE thing differently:
+I combine simple automations with custom AI that takes less than a week to build.
+
+Recent client wins:
+* Turned a basic invoicing headache into a $6k project that saves my client 20 hours/week
+* Built a lead generation machine for law firms - they happily paid $13k (and it runs 24/7)
+* Created AI-powered SEO automation that beats funded companies (using $0 in AI costs)
+
+Time to build each solution? Under 2 hours.
+
+But here's what's crazy...
+Most automation builders think AI is "too complex" or "too expensive" to add to their stack.
+(Meanwhile, I'm charging 10x more for solutions that take the same time to build)
+
+"Oday Bakkour" - https://seo-hunter.net/

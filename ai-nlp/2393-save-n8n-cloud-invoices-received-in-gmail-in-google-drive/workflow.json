@@ -1,0 +1,451 @@
+{
+  "nodes": [
+    {
+      "id": "3102dc76-7123-4e87-b30f-e15c240e77da",
+      "name": "Gmail Trigger",
+      "type": "n8n-nodes-base.gmailTrigger",
+      "position": [
+        0,
+        0
+      ],
+      "parameters": {
+        "simple": false,
+        "filters": {},
+        "options": {},
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        }
+      },
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "H4Vkp5Iwb0wrQOR6",
+          "name": "Nik's gmail"
+        }
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "1e4a55e5-289e-4d67-a161-9109bd430e75",
+      "name": "Only n8n Paddle invoice mails",
+      "type": "n8n-nodes-base.if",
+      "position": [
+        420,
+        0
+      ],
+      "parameters": {
+        "options": {},
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "229200d1-ec13-4970-ae0e-2c8e17da0bdf",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              },
+              "leftValue": "={{ $json.from.value[0].address }}",
+              "rightValue": "help@paddle.com"
+            },
+            {
+              "id": "1830d49a-5ee0-472c-bb9d-0090c0e1f5a4",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "leftValue": "={{ $json.subject }}",
+              "rightValue": "Your invoice"
+            }
+          ]
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "a87ed337-a582-44ed-9185-ea0dd9486245",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "position": [
+        820,
+        -120
+      ],
+      "parameters": {
+        "options": {},
+        "fieldToSplitOut": "link"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "3a4dd56b-3177-4364-ac48-ce9e475b773f",
+      "name": "Only keep invoice link",
+      "type": "n8n-nodes-base.filter",
+      "position": [
+        1000,
+        -120
+      ],
+      "parameters": {
+        "options": {},
+        "conditions": {
+          "options": {
+            "leftValue": "",
+            "caseSensitive": true,
+            "typeValidation": "strict"
+          },
+          "combinator": "and",
+          "conditions": [
+            {
+              "id": "d8a78835-46bd-40c0-b9ef-c1a631ab0a00",
+              "operator": {
+                "type": "string",
+                "operation": "contains"
+              },
+              "leftValue": "={{ $json.link }}",
+              "rightValue": "/receipt/"
+            }
+          ]
+        }
+      },
+      "typeVersion": 2.1
+    },
+    {
+      "id": "2da9e7c0-8954-442a-a33c-a942cd634b27",
+      "name": "Do nothing on other emails",
+      "type": "n8n-nodes-base.noOp",
+      "position": [
+        640,
+        80
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "dd837661-97af-4abc-8b44-a10931cda54c",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        160,
+        -280
+      ],
+      "parameters": {
+        "height": 440,
+        "content": "## Setup\n1. Setup your **Gmail** and **Google Drive** credentials\n1. Create a free account at https://pdflayer.com/\n2. Insert your **pdflayer** API key into the `Setup` node\n3. Insert the URL to the wanted drive folder into the setup node (make sure to remove everything after the `?`)"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "8de9b630-0a5f-4d2c-ac7f-e3264314a97c",
+      "name": "Setup",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        220,
+        0
+      ],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "86a22cf3-262a-4089-88ab-fafc01307bb4",
+              "name": "api_key",
+              "type": "string",
+              "value": "{{ your_key_here }}"
+            },
+            {
+              "id": "4cca07a2-6a70-4011-a025-65246e652fb9",
+              "name": "url_to_drive_folder",
+              "type": "string",
+              "value": "{{ folder_URL }}"
+            }
+          ]
+        },
+        "includeOtherFields": true
+      },
+      "typeVersion": 3.4
+    },
+    {
+      "id": "b06860a4-3895-4a28-9365-71c31f220d10",
+      "name": "Download Invoice PDF from URL",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1200,
+        -120
+      ],
+      "parameters": {
+        "url": "http://api.pdflayer.com/api/convert",
+        "options": {},
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "access_key",
+              "value": "={{ $('Setup').first().json.api_key }}"
+            },
+            {
+              "name": "document_url",
+              "value": "={{ $json.link }}"
+            },
+            {
+              "name": "page_size",
+              "value": "A4"
+            }
+          ]
+        }
+      },
+      "typeVersion": 4.2,
+      "alwaysOutputData": true
+    },
+    {
+      "id": "c2be351e-76ce-4bfa-8965-e41d59a6c49a",
+      "name": "Rename file",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        1580,
+        -120
+      ],
+      "parameters": {
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "options": {},
+        "operation": "update",
+        "newUpdatedFileName": "=n8n_cloud_invoice_{{ $now.format('yyyy-MM-dd') }}.pdf"
+      },
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jMxk7HGWZs6ucm5P",
+          "name": "Nik's Google Drive"
+        }
+      },
+      "typeVersion": 3
+    },
+    {
+      "id": "20b90e38-dd17-462c-8007-e83dcc2dc8df",
+      "name": "Move to the correct folder",
+      "type": "n8n-nodes-base.googleDrive",
+      "position": [
+        1760,
+        -120
+      ],
+      "parameters": {
+        "fileId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $json.id }}"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "mode": "url",
+          "value": "={{ $('Setup').item.json.url_to_drive_folder }}"
+        },
+        "operation": "move"
+      },
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jMxk7HGWZs6ucm5P",
+          "name": "Nik's Google Drive"
+        }
+      },
+      "typeVersion": 3
+    },
+    {
+      "id": "5c2930eb-90f8-4f4f-ae6a-638a01faccd3",
+      "name": "Upload PDF to Drive",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1400,
+        -120
+      ],
+      "parameters": {
+        "url": "https://www.googleapis.com/upload/drive/v3/files",
+        "method": "POST",
+        "options": {},
+        "sendBody": true,
+        "sendQuery": true,
+        "contentType": "binaryData",
+        "authentication": "predefinedCredentialType",
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "uploadType",
+              "value": "media"
+            }
+          ]
+        },
+        "inputDataFieldName": "data",
+        "nodeCredentialType": "googleDriveOAuth2Api"
+      },
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "jMxk7HGWZs6ucm5P",
+          "name": "Nik's Google Drive"
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "1806abe4-d80e-4ab8-8303-6b92d569aac5",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1353.6776457357505,
+        -255.65646735405625
+      ],
+      "parameters": {
+        "color": 7,
+        "width": 608.5129596994967,
+        "height": 306.2353014680544,
+        "content": "## Adjust me\nYou can adjust this part and save the file wherever you want. E.g. you could save it in your local file system by using the `Read/Write Files from Disk` node or save it in Dropbox by using the `Dropbox` node. You could even email the PDF to the right person instead."
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "efa55724-3b42-4abd-a30a-ad7e9836ede5",
+      "name": "Extract \"a-tags\" from email",
+      "type": "n8n-nodes-base.html",
+      "position": [
+        640,
+        -120
+      ],
+      "parameters": {
+        "options": {},
+        "operation": "extractHtmlContent",
+        "dataPropertyName": "html",
+        "extractionValues": {
+          "values": [
+            {
+              "key": "link",
+              "attribute": "href",
+              "cssSelector": "a",
+              "returnArray": true,
+              "returnValue": "attribute"
+            }
+          ]
+        }
+      },
+      "typeVersion": 1.2
+    }
+  ],
+  "connections": {
+    "Setup": {
+      "main": [
+        [
+          {
+            "node": "Only n8n Paddle invoice mails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "Only keep invoice link",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Rename file": {
+      "main": [
+        [
+          {
+            "node": "Move to the correct folder",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Setup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload PDF to Drive": {
+      "main": [
+        [
+          {
+            "node": "Rename file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only keep invoice link": {
+      "main": [
+        [
+          {
+            "node": "Download Invoice PDF from URL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Extract \"a-tags\" from email": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Download Invoice PDF from URL": {
+      "main": [
+        [
+          {
+            "node": "Upload PDF to Drive",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Only n8n Paddle invoice mails": {
+      "main": [
+        [
+          {
+            "node": "Extract \"a-tags\" from email",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Do nothing on other emails",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

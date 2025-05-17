@@ -1,0 +1,430 @@
+{
+  "nodes": [
+    {
+      "id": "50695e7f-3334-4124-a46e-1b3819412e26",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1260,
+        540
+      ],
+      "parameters": {
+        "model": "gpt-4o",
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "WqzqjezKh8VtxdqA",
+          "name": "OpenAi account - Baptiste"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "2f07481d-3ca4-48ab-a8ff-59e9ab5c6062",
+      "name": "Execute Workflow",
+      "type": "n8n-nodes-base.executeWorkflow",
+      "position": [
+        2100,
+        300
+      ],
+      "parameters": {
+        "options": {
+          "waitForSubWorkflow": true
+        },
+        "workflowId": {
+          "__rl": true,
+          "mode": "id",
+          "value": "={{ $workflow.id }}"
+        }
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "49120164-4ffc-4fe0-8ee3-4ae13bda6c8d",
+      "name": "Execute \"Generate a chart\" tool",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "position": [
+        1320,
+        1140
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "id": "0fc6eaf9-8521-44ec-987e-73644d0cba79",
+      "name": "OpenAI - Generate Chart definition with Structured Output",
+      "type": "n8n-nodes-base.httpRequest",
+      "position": [
+        1620,
+        1140
+      ],
+      "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "method": "POST",
+        "options": {},
+        "jsonBody": "={\n    \"model\": \"gpt-4o-2024-08-06\",\n    \"messages\": [\n        {\n            \"role\": \"system\",\n            \"content\": \"Based on the user request, generate a valid Chart.js definition. Important: - Be careful with the data scale and beginatzero that all data are visible. Example if ploted data 2 and 3 on a bar chart, the baseline should be 0. - Charts colors should be different only if there are multiple datasets. - Output valid JSON. In scales, min and max are numbers. Example: `{scales:{yAxes:[{ticks:{min:0,max:3}`\"\n        },\n        {\n            \"role\": \"user\",\n            \"content\": \"{{ $json.output.replaceAll('\\n', \" \").replaceAll('\"', \"\") }}\"\n        }\n    ],\n    \"response_format\": {\n  \"type\": \"json_schema\",\n  \"json_schema\": {\n    \"name\": \"chart_configuration\",\n    \"description\": \"Configuration schema for Chart.js charts\",\n    \"strict\": true,\n    \"schema\": {\n  \"type\": \"object\",\n  \"properties\": {\n    \"type\": {\n      \"type\": \"string\",\n      \"enum\": [\"bar\", \"line\", \"radar\", \"pie\", \"doughnut\", \"polarArea\", \"bubble\", \"scatter\", \"area\"]\n    },\n    \"data\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"labels\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"string\"\n          }\n        },\n        \"datasets\": {\n          \"type\": \"array\",\n          \"items\": {\n            \"type\": \"object\",\n            \"properties\": {\n              \"label\": {\n                \"type\": [\"string\", \"null\"]\n              },\n              \"data\": {\n                \"type\": \"array\",\n                \"items\": {\n                  \"type\": \"number\"\n                }\n              },\n              \"backgroundColor\": {\n                \"type\": [\"array\", \"null\"],\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"borderColor\": {\n                \"type\": [\"array\", \"null\"],\n                \"items\": {\n                  \"type\": \"string\"\n                }\n              },\n              \"borderWidth\": {\n                \"type\": [\"number\", \"null\"]\n              }\n            },\n            \"required\": [\"data\", \"label\", \"backgroundColor\", \"borderColor\", \"borderWidth\"],\n            \"additionalProperties\": false\n          }\n        }\n      },\n      \"required\": [\"labels\", \"datasets\"],\n      \"additionalProperties\": false\n    },\n    \"options\": {\n      \"type\": \"object\",\n      \"properties\": {\n        \"scales\": {\n          \"type\": [\"object\", \"null\"],\n          \"properties\": {\n            \"yAxes\": {\n              \"type\": \"array\",\n              \"items\": {\n                \"type\": [\"object\", \"null\"],\n                \"properties\": {\n                  \"ticks\": {\n                    \"type\": [\"object\", \"null\"],\n                    \"properties\": {\n                      \"max\": {\n                        \"type\": [\"number\", \"null\"]\n                      },\n                      \"min\": {\n                        \"type\": [\"number\", \"null\"]\n                      },\n                      \"stepSize\": {\n                        \"type\": [\"number\", \"null\"]\n                      },\n                      \"beginAtZero\": {\n                        \"type\": [\"boolean\", \"null\"]\n                      }\n                    },\n                    \"required\": [\"max\", \"min\", \"stepSize\", \"beginAtZero\"],\n                    \"additionalProperties\": false\n                  },\n                  \"stacked\": {\n                    \"type\": [\"boolean\", \"null\"]\n                  }\n                },\n                \"required\": [\"ticks\", \"stacked\"],\n                \"additionalProperties\": false\n              }},\n              \"xAxes\": {\n                \"type\": [\"object\", \"null\"],\n                \"properties\": {\n                  \"stacked\": {\n                    \"type\": [\"boolean\", \"null\"]\n                  }\n                },\n                \"required\": [\"stacked\"],\n                \"additionalProperties\": false\n              }\n          },\n          \"required\": [\"yAxes\", \"xAxes\"],\n          \"additionalProperties\": false\n        },\n        \"plugins\": {\n          \"type\": [\"object\", \"null\"],\n          \"properties\": {\n            \"title\": {\n              \"type\": [\"object\", \"null\"],\n              \"properties\": {\n                \"display\": {\n                  \"type\": [\"boolean\", \"null\"]\n                },\n                \"text\": {\n                  \"type\": [\"string\", \"null\"]\n                }\n              },\n              \"required\": [\"display\", \"text\"],\n              \"additionalProperties\": false\n            },\n            \"legend\": {\n              \"type\": [\"object\", \"null\"],\n              \"properties\": {\n                \"display\": {\n                  \"type\": [\"boolean\", \"null\"]\n                },\n                \"position\": {\n                  \"type\": [\"string\", \"null\"],\n                  \"enum\": [\"top\", \"left\", \"bottom\", \"right\", null]\n                }\n              },\n              \"required\": [\"display\", \"position\"],\n              \"additionalProperties\": false\n            }\n          },\n          \"required\": [\"title\", \"legend\"],\n          \"additionalProperties\": false\n        }\n      },\n      \"required\": [\"scales\", \"plugins\"],\n      \"additionalProperties\": false\n    }\n  },\n  \"required\": [\"type\", \"data\", \"options\"],\n  \"additionalProperties\": false\n}\n}\n}\n}",
+        "sendBody": true,
+        "sendHeaders": true,
+        "specifyBody": "json",
+        "authentication": "predefinedCredentialType",
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "=Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "nodeCredentialType": "openAiApi"
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "WqzqjezKh8VtxdqA",
+          "name": "OpenAi account - Baptiste"
+        }
+      },
+      "typeVersion": 4.2
+    },
+    {
+      "id": "8016a925-7b31-4a49-b5e1-56cf9b5fa7b3",
+      "name": "Set response",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        1860,
+        1140
+      ],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "37512e1a-8376-4ba0-bdcd-34bb9329ae4b",
+              "name": "output",
+              "type": "string",
+              "value": "={{ \"https://quickchart.io/chart?width=200&c=\" + encodeURIComponent($json.choices[0].message.content) }}"
+            }
+          ]
+        }
+      },
+      "typeVersion": 3.4
+    },
+    {
+      "id": "9a2b8eca-5303-4eb0-8115-b0d81bfd1d7c",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "position": [
+        980,
+        380
+      ],
+      "webhookId": "b0e681ae-e00d-450c-9300-2c2a4a0876df",
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "typeVersion": 1.1
+    },
+    {
+      "id": "2a02c5ee-11e1-4559-bbfb-ea483e914e52",
+      "name": "Set Text output",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        2080,
+        480
+      ],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "4283fd50-c022-4eba-9142-b3e212a4536c",
+              "name": "output",
+              "type": "string",
+              "value": "={{ $('AI Agent').item.json.output }}"
+            }
+          ]
+        }
+      },
+      "typeVersion": 3.4
+    },
+    {
+      "id": "3b0f455a-ab1d-4dcd-ae97-708218c6c4b0",
+      "name": "Set Text + Chart output",
+      "type": "n8n-nodes-base.set",
+      "position": [
+        2320,
+        300
+      ],
+      "parameters": {
+        "options": {},
+        "assignments": {
+          "assignments": [
+            {
+              "id": "63bab42a-9b9b-4756-88d2-f41cff9a1ded",
+              "name": "output",
+              "type": "string",
+              "value": "={{ $('AI Agent').item.json.output }}\n\n![image]({{ $json.output }})"
+            }
+          ]
+        }
+      },
+      "typeVersion": 3.4
+    },
+    {
+      "id": "29e2381a-7650-4e9a-a97f-26c7550ff7ba",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "position": [
+        1240,
+        380
+      ],
+      "parameters": {
+        "agent": "sqlAgent",
+        "options": {
+          "prefixPrompt": "You are an agent designed to interact with an SQL database.\nGiven an input question, create a syntactically correct {dialect} query to run, then look at the results of the query and return the answer.\nUnless the user specifies a specific number of examples they wish to obtain, always limit your query to at most {top_k} results using the LIMIT clause.\nYou can order the results by a relevant column to return the most interesting examples in the database.\nNever query for all the columns from a specific table, only ask for a the few relevant columns given the question.\nYou have access to tools for interacting with the database.\nOnly use the below tools. Only use the information returned by the below tools to construct your final answer.\nYou MUST double check your query before executing it. If you get an error while executing a query, rewrite the query and try again.\n\nTable name have to be enclosed in \"\", don't escape the \" with a \\.\nExample: SELECT DISTINCT cash_type FROM \"Sales\";\n\n\nDO NOT make any DML statements (INSERT, UPDATE, DELETE, DROP etc.) to the database.\n\nIf the question does not seem related to the database, just return \"I don't know\" as the answer."
+        }
+      },
+      "credentials": {
+        "postgres": {
+          "id": "pdoWsjndlIgtlZYV",
+          "name": "Coffee Sales Postgres"
+        }
+      },
+      "typeVersion": 1.7
+    },
+    {
+      "id": "c5fdff53-29fa-474e-abcc-34fa4009250c",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "position": [
+        1400,
+        540
+      ],
+      "parameters": {
+        "contextWindowLength": 4
+      },
+      "typeVersion": 1.2
+    },
+    {
+      "id": "4e630901-6c6c-4e86-af66-c6dfb9a92138",
+      "name": "Sticky Note1",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        40,
+        160
+      ],
+      "parameters": {
+        "color": 7,
+        "width": 681,
+        "height": 765.2414586028488,
+        "content": "## Workflow: SQL Agent with visualisation skills\n\n**Overview**\n- This workflow aims at providing data visualization to a native SQL Agent.\n- Together, they can help with fostering data analysis and data visualization within a team.\n- It uses the native SQL Agent that works well and adds some visualization capabilities thanks to OpenAI Structured Output and Quickchart.io.\n\n\n**How it works**\n- The first part of the workflow is a regular SQL Agent: it connects to a Database and is able to query it and translate the response in a human format.\n- Then, the Text Classifier is deciding if the user would benefit from a chart, supporting the SQL Agent's response.\n- If it does, then it executes the subworkflow to dynamically generate a chart and append the chart to the response from the SQL Agent.\n- If it doesn't, then the SQL Agent response is directly outputted.\n- The sub-workflow calls OpenAI through the HTTP Request node to retrieve a chart definition.\n- In the \"set response\" node, the chart definition is added at the end of a quickchart.io URL - the URL to the chart image. It is sent back to the AI Agent.\n\n\n**How to use it**\n- Use an existing or create a new database.\n- For example, I've used [this Kaggle dataset](https://www.kaggle.com/datasets/ihelon/coffee-sales/versions/15?resource=download) and uploaded it to a Supabase DB.\n- Add the PostgreSQL or MySQL credentials.\n- Alternatively, you can use SQLite binary files (check [this template](https://n8n.io/workflows/2292-talk-to-your-sqlite-database-with-a-langchain-ai-agent/)).\n- Activate the workflow.\n- Start chatting with the AI SQL Agent.\n- If the Text Classifier considers a chart would be useful, it will generate a chart in addition to the response from the SQL Agent.\n\n\n**Notes**\n- The full Quickchart.io specifications have not been integrated, thus there are some possible glitches (e.g., due to the size of the graph, radar graphs are not displayed properly)."
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "36d7b17f-c7df-4a0a-8781-626dc1edddee",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1260,
+        800
+      ],
+      "parameters": {
+        "color": 7,
+        "width": 769,
+        "height": 523,
+        "content": "## Generate a Quickchart definition \n[Original template](https://n8n.io/workflows/2400-ai-agent-with-charts-capabilities-using-openai-structured-output-and-quickchart/)\n\n**HTTP Request node**\n- Send the chart query to OpenAI, with a defined JSON response format - *using HTTP Request node as it has not yet been implemented in the OpenAI nodes*\n- The JSON structure is based on ChartJS and Quickchart.io definitions, that let us create nice looking graphs.\n- The output is a JSON containing the chart definition that is passed to the next node.\n\n**Set Response node**\n- Adds the chart definition at the end of a Quickchart.io URL ([see documentation](https://quickchart.io/documentation/usage/parameters/))\n- Note that in the parameters, we specify the width to 250 in order to be properly displayed in the chart interface."
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "9ccea33b-c5d9-422e-a5b9-11efbc05ab1a",
+      "name": "Sticky Note2",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        840,
+        160
+      ],
+      "parameters": {
+        "color": 7,
+        "width": 768,
+        "height": 546,
+        "content": "### SQL Agent\n- This SQL Agent is connected to a Database\n- For each message, it is going to query the databse.\n- In this example, the prompt has been slightly changed to adapt to an issue with querying a Supabase DB. Feel free to change the `Prefix Prompt` to tailor your need.\n- This example uses the data from this [Kaggle dataset](https://www.kaggle.com/datasets/ihelon/coffee-sales/versions/15?resource=download)"
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "d8bf0767-faf0-4030-b325-08315188adcb",
+      "name": "OpenAI Chat Model Classifier",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "position": [
+        1780,
+        540
+      ],
+      "parameters": {
+        "options": {
+          "temperature": 0.2
+        }
+      },
+      "credentials": {
+        "openAiApi": {
+          "id": "WqzqjezKh8VtxdqA",
+          "name": "OpenAi account - Baptiste"
+        }
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "4bcd676f-44f3-4242-a5fd-7cf2098a3a64",
+      "name": "Sticky Note3",
+      "type": "n8n-nodes-base.stickyNote",
+      "position": [
+        1660,
+        160
+      ],
+      "parameters": {
+        "color": 7,
+        "width": 888,
+        "height": 546,
+        "content": "### Respond with a text only or also include a chart \n- The text classifier determines if the response from the SQL Agent would benefit from a chart\n- If it does, then it executes the subworkflow to dynamically generate a chart, and append the chart to the response from the SQL Agent\n- If it doesn't, then the SQL Agent response is directly outputted. "
+      },
+      "typeVersion": 1
+    },
+    {
+      "id": "256cb28b-0d83-4f6d-bb11-33745c9efa4a",
+      "name": "Text Classifier - Chart required?",
+      "type": "@n8n/n8n-nodes-langchain.textClassifier",
+      "position": [
+        1680,
+        380
+      ],
+      "parameters": {
+        "options": {},
+        "inputText": "={{ $json.output }}",
+        "categories": {
+          "categories": [
+            {
+              "category": "chart_required",
+              "description": "if a chart can help the user understand the response. Only if there are multiple data to show"
+            },
+            {
+              "category": "chart_not_required",
+              "description": "if a chart doesn't help the user understand the response (e.g a single data point that doesn't require visualization)"
+            }
+          ]
+        }
+      },
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "AI Agent": {
+      "main": [
+        [
+          {
+            "node": "Text Classifier - Chart required?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow": {
+      "main": [
+        [
+          {
+            "node": "Set Text + Chart output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model Classifier": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Text Classifier - Chart required?",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute \"Generate a chart\" tool": {
+      "main": [
+        [
+          {
+            "node": "OpenAI - Generate Chart definition with Structured Output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Text Classifier - Chart required?": {
+      "main": [
+        [
+          {
+            "node": "Execute Workflow",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Set Text output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI - Generate Chart definition with Structured Output": {
+      "main": [
+        [
+          {
+            "node": "Set response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}

@@ -1,0 +1,47 @@
+{
+  "nodes": [
+    {
+      "name": "Discord",
+      "type": "n8n-nodes-base.discord",
+      "position": [
+        680,
+        300
+      ],
+      "parameters": {},
+      "typeVersion": 1
+    },
+    {
+      "name": "Onfleet Trigger",
+      "type": "n8n-nodes-base.onfleetTrigger",
+      "position": [
+        460,
+        300
+      ],
+      "webhookId": "58f99515-a1d6-4c56-8ecc-e9d921fa3276",
+      "parameters": {
+        "triggerOn": "taskStarted",
+        "additionalFields": {}
+      },
+      "credentials": {
+        "onfleetApi": {
+          "id": "2",
+          "name": "Onfleet API Key"
+        }
+      },
+      "typeVersion": 1
+    }
+  ],
+  "connections": {
+    "Onfleet Trigger": {
+      "main": [
+        [
+          {
+            "node": "Discord",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  }
+}
